@@ -1,16 +1,11 @@
 import torch
+from src.losses.nt_xent import NTXentLoss
 
-from src.models.encoder import ResNetEncoder
-from src.models.projection_head import ProjectionHead
+loss_fn = NTXentLoss()
 
-encoder = ResNetEncoder()
-proj = ProjectionHead(encoder.out_dim)
+z1 = torch.randn(4, 128)
+z2 = torch.randn(4, 128)
 
-x = torch.randn(4, 3, 224, 224)
-
-features = encoder(x)
-z = proj(features)
-
-print(features.shape)
-print(z.shape)
+loss = loss_fn(z1, z2)
+print("Loss:", loss.item())
 
