@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -28,7 +29,7 @@ def train():
 
     dataloader = DataLoader(
         dataset,
-        batch_size=64,  # safer for Colab; change to 128 if stable
+        batch_size=64,
         shuffle=True,
         num_workers=2,
         pin_memory=True
@@ -57,11 +58,33 @@ def train():
     )
 
     epochs = 100
+    start_epoch = 0
+
+    # -------------------------
+    # Resume from latest checkpoint (if exists)
+    # -------------------------
+    checkpoints = [f for f in os.listdir() if f.startswith("ssl_checkpoint_epoch_")]
+
+    if checkpoints:
+        latest_checkpoint = sorted(
+            checkpoints,
+            key=lambda x: int(x.split("_")[-1].split(".")[0])
+        )[-1]
+
+        print(f"Loading checkpoint: {latest_checkpoint}")
+        checkpoint = torch.load(latest_checkpoint, map_location=device)
+
+        encoder.load_state_dict(checkpoint['encoder_state_dict'])
+        projection_head.load_state_dict(checkpoint['projection_head_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+        start_epoch = checkpoint['epoch']
+        print(f"Resumed from epoch {start_epoch}")
 
     # -------------------------
     # Training Loop
     # -------------------------
-    for epoch in range(epochs):
+    for epoch in range(start_epoch, epochs):
         total_loss = 0
 
         for (x1, x2) in dataloader:
@@ -71,14 +94,12 @@ def train():
 
             optimizer.zero_grad()
 
-            # Forward pass
             h1 = encoder(x1)
             h2 = encoder(x2)
 
             z1 = projection_head(h1)
             z2 = projection_head(h2)
 
-            # Compute loss
             loss = criterion(z1, z2)
 
             loss.backward()
