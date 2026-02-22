@@ -20,20 +20,18 @@ def train():
     transform = get_ssl_transforms(image_size=224)
 
     dataset = HAM10000Dataset(
-        csv_file="data/HAM10000/metadata.csv",
-        image_dir="data/HAM10000/images",
+        csv_file="data/HAM10000/HAM10000_metadata.csv",
+        image_dir="data/HAM10000",
         transform=transform,
         ssl=True
     )
 
-    # 🔥 DEBUG MODE: use small subset for local testing
-    dataset.data = dataset.data.sample(500).reset_index(drop=True)
-
     dataloader = DataLoader(
         dataset,
-        batch_size=16,      # smaller batch for CPU
+        batch_size=128,          # Good for T4 GPU
         shuffle=True,
-        num_workers=0       # important for Mac
+        num_workers=2,
+        pin_memory=True
     )
 
     # -------------------------
@@ -55,7 +53,7 @@ def train():
         lr=1e-3
     )
 
-    epochs = 2   # small number for debug
+    epochs = 100
 
     # -------------------------
     # Training Loop
@@ -65,8 +63,8 @@ def train():
 
         for (x1, x2) in dataloader:
 
-            x1 = x1.to(device)
-            x2 = x2.to(device)
+            x1 = x1.to(device, non_blocking=True)
+            x2 = x2.to(device, non_blocking=True)
 
             optimizer.zero_grad()
 

@@ -1,8 +1,9 @@
-#DATA PIPELINING LAYER
+# DATA PIPELINING LAYER
 import os
 import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset
+
 
 class HAM10000Dataset(Dataset):
     def __init__(self, csv_file, image_dir, transform=None, ssl=False):
@@ -11,18 +12,27 @@ class HAM10000Dataset(Dataset):
         self.transform = transform
         self.ssl = ssl
 
-        #Assigning index to each unique label
+        # Assign index to each unique label
         self.classes = sorted(self.data['dx'].unique())
         self.class_to_idx = {cls: idx for idx, cls in enumerate(self.classes)}
 
     def __len__(self):
         return len(self.data)
 
-    #Helping PyTorch to load one sample from dataset
     def __getitem__(self, idx):
         image_id = self.data.iloc[idx]['image_id']
-        #Building image path
-        image_path = os.path.join(self.image_dir, image_id + ".jpg")
+        image_name = image_id + ".jpg"
+
+        # Search in both Kaggle image folders
+        part1_path = os.path.join(self.image_dir, "HAM10000_images_part_1", image_name)
+        part2_path = os.path.join(self.image_dir, "HAM10000_images_part_2", image_name)
+
+        if os.path.exists(part1_path):
+            image_path = part1_path
+        elif os.path.exists(part2_path):
+            image_path = part2_path
+        else:
+            raise FileNotFoundError(f"{image_name} not found in dataset folders.")
 
         image = Image.open(image_path).convert("RGB")
 
@@ -35,17 +45,17 @@ class HAM10000Dataset(Dataset):
             if self.transform:
                 image = self.transform(image)
             return image, label
-        
-#TEST BLOCK
+
+
+# TEST BLOCK
 if __name__ == "__main__":
     from torchvision import transforms
 
     transform = transforms.ToTensor()
 
     dataset = HAM10000Dataset(
-        csv_file="data/HAM10000/metadata.csv",
-        image_dir="data/HAM10000/images",
-
+        csv_file="data/HAM10000/HAM10000_metadata.csv",
+        image_dir="data/HAM10000",
         transform=transform
     )
 
