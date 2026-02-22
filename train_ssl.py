@@ -21,8 +21,8 @@ def train():
     transform = get_ssl_transforms(image_size=224)
 
     dataset = HAM10000Dataset(
-        csv_file="/kaggle/input/skin-cancer-mnist-ham10000/HAM10000_metadata.csv",
-        image_dir="/kaggle/input/skin-cancer-mnist-ham10000",
+        csv_file="/kaggle/input/datasets/kmader/skin-cancer-mnist-ham10000/HAM10000_metadata.csv",
+        image_dir="/kaggle/input/datasets/kmader/skin-cancer-mnist-ham10000",
         transform=transform,
         ssl=True
     )
