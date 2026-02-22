@@ -28,7 +28,7 @@ def train():
 
     dataloader = DataLoader(
         dataset,
-        batch_size=128,          # Good for T4 GPU
+        batch_size=64,  # safer for Colab; change to 128 if stable
         shuffle=True,
         num_workers=2,
         pin_memory=True
@@ -39,6 +39,9 @@ def train():
     # -------------------------
     encoder = ResNetEncoder().to(device)
     projection_head = ProjectionHead(encoder.out_dim).to(device)
+
+    encoder.train()
+    projection_head.train()
 
     # -------------------------
     # Loss
@@ -85,6 +88,30 @@ def train():
 
         avg_loss = total_loss / len(dataloader)
         print(f"Epoch [{epoch+1}/{epochs}] Loss: {avg_loss:.4f}")
+
+        # -------------------------
+        # Save checkpoint every 10 epochs
+        # -------------------------
+        if (epoch + 1) % 10 == 0:
+            checkpoint_path = f"ssl_checkpoint_epoch_{epoch+1}.pth"
+            torch.save({
+                'epoch': epoch + 1,
+                'encoder_state_dict': encoder.state_dict(),
+                'projection_head_state_dict': projection_head.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': avg_loss
+            }, checkpoint_path)
+            print(f"Checkpoint saved at {checkpoint_path}")
+
+    # -------------------------
+    # Save final model
+    # -------------------------
+    torch.save({
+        'encoder_state_dict': encoder.state_dict(),
+        'projection_head_state_dict': projection_head.state_dict()
+    }, "ssl_final_model.pth")
+
+    print("Training completed and final model saved.")
 
 
 if __name__ == "__main__":
