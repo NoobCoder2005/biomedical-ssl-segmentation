@@ -1,11 +1,14 @@
-import torch
-from src.losses.nt_xent import NTXentLoss
+from src.datasets.ham10000_segmentation import HAM10000Segmentation
 
-loss_fn = NTXentLoss()
+dataset = HAM10000Segmentation(
+    image_dir="data/HAM10000/images",
+    mask_dir="data/HAM10000/masks"
+)
 
-z1 = torch.randn(4, 128)
-z2 = torch.randn(4, 128)
+print("Dataset size:", len(dataset))
 
-loss = loss_fn(z1, z2)
-print("Loss:", loss.item())
+image, mask = dataset[0]
+
+print("Image shape:", image.shape)
+print("Mask shape:", mask.shape)
 
