@@ -27,8 +27,8 @@ def train():
     # Dataset
     # -------------------------
     dataset = HAM10000Segmentation(
-        image_dir="data/HAM10000/images",
-        mask_dir="data/HAM10000/masks"
+        image_dir="/kaggle/input/ham10000-images/images"
+        mask_dir="/kaggle/input/ham10000-segmentation/masks"
     )
 
     dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
